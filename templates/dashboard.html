@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Field Issue Logger{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Issues Dashboard
+        </h1>
+    </div>
+</div>
+
+<!-- Summary Statistics Section -->
+<div class="row mb-4">
+    <!-- Total Issues Card -->
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card summary-card h-100 border-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-clipboard-data fs-1 text-primary"></i>
+                <h3 class="card-title mt-2">{{ total_issues }}</h3>
+                <p class="card-text text-muted">Total Issues</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Open Issues Card -->
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card summary-card h-100 border-info">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-circle fs-1 text-info"></i>
+                <h3 class="card-title mt-2 text-info">{{ open_issues }}</h3>
+                <p class="card-text text-muted">Open Issues</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolved Issues Card -->
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card summary-card h-100 border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                <h3 class="card-title mt-2 text-success">{{ resolved_issues }}</h3>
+                <p class="card-text text-muted">Resolved</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- High Urgency Issues Card -->
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card summary-card h-100 border-danger">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i>
+                <h3 class="card-title mt-2 text-danger">{{ urgency_counts.High }}</h3>
+                <p class="card-text text-muted">High Urgency</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medium Urgency Issues Card -->
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card summary-card h-100 border-warning">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-circle-fill fs-1 text-warning"></i>
+                <h3 class="card-title mt-2 text-warning">{{ urgency_counts.Medium }}</h3>
+                <p class="card-text text-muted">Medium Urgency</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Urgency Issues Card -->
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card summary-card h-100 border-secondary">
+            <div class="card-body text-center">
+                <i class="bi bi-info-circle-fill fs-1 text-secondary"></i>
+                <h3 class="card-title mt-2 text-secondary">{{ urgency_counts.Low }}</h3>
+                <p class="card-text text-muted">Low Urgency</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- High Priority Issues Alert Section -->
+{% if high_urgency_issues %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <h5 class="alert-heading">
+                <i class="bi bi-exclamation-triangle-fill"></i> High Priority Issues Requiring Attention
+            </h5>
+            <ul class="mb-0">
+                {% for issue in high_urgency_issues %}
+                <li><strong>{{ issue.location }}</strong> - {{ issue.issue_type }}: {{ issue.description[:100] }}{% if issue.description|length > 100 %}...{% endif %} ({{ issue.date }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Action Buttons and Search Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>All Issues</h3>
+            <a href="{{ url_for('new_issue') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Issue
+            </a>
+        </div>
+
+        <!-- Search and Filter Form -->
+        <form method="GET" class="row g-3 mb-3">
+            <div class="col-md-4">
+                <label for="search_location" class="form-label">Search Location:</label>
+                <input type="text" class="form-control" id="search_location" name="search_location" 
+                       value="{{ search_location }}" placeholder="Enter location...">
+            </div>
+            <div class="col-md-3">
+                <label for="search_type" class="form-label">Filter by Type:</label>
+                <select class="form-select" id="search_type" name="search_type">
+                    <option value="">All Types</option>
+                    {% for type in issue_types %}
+                    <option value="{{ type.issue_type }}" {% if search_type == type.issue_type %}selected{% endif %}>
+                        {{ type.issue_type }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="sort_by" class="form-label">Sort by:</label>
+                <select class="form-select" id="sort_by" name="sort_by">
+                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+                    <option value="urgency" {% if sort_by == 'urgency' %}selected{% endif %}>Urgency</option>
+                    <option value="issue_type" {% if sort_by == 'issue_type' %}selected{% endif %}>Type</option>
+                    <option value="location" {% if sort_by == 'location' %}selected{% endif %}>Location</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label for="sort_order" class="form-label">Order:</label>
+                <select class="form-select" id="sort_order" name="sort_order">
+                    <option value="DESC" {% if sort_order == 'DESC' %}selected{% endif %}>↓</option>
+                    <option value="ASC" {% if sort_order == 'ASC' %}selected{% endif %}>↑</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Issues Table -->
+<div class="row">
+    <div class="col-12">
+        {% if issues %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Urgency</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issues %}
+                    <tr{% if issue.resolved %} class="table-secondary" style="opacity: 0.7;"{% endif %}>
+                        <td>
+                            <a href="{{ url_for('view_issue', issue_id=issue.id) }}" class="text-decoration-none">
+                                <span class="badge bg-secondary">{{ issue.id }}</span>
+                            </a>
+                        </td>
+                        <td>{{ issue.date }}</td>
+                        <td><strong>{{ issue.location }}</strong></td>
+                        <td>
+                            <span class="badge bg-info">{{ issue.issue_type }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_issue', issue_id=issue.id) }}" class="text-decoration-none text-body">
+                                <div class="text-truncate" style="max-width: 300px;" title="Click to view full description: {{ issue.description }}">
+                                    {{ issue.description }}
+                                    {% if issue.description|length > 100 %}
+                                        <small class="text-muted">... <i class="bi bi-eye"></i></small>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </td>
+                        <td>
+                            <span class="urgency-{{ issue.urgency.lower() }}">
+                                {% if issue.urgency == 'High' %}
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                {% elif issue.urgency == 'Medium' %}
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-info-circle-fill"></i>
+                                {% endif %}
+                                {{ issue.urgency }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if issue.resolved %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle-fill"></i> Resolved
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-clock"></i> Open
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('view_issue', issue_id=issue.id) }}" 
+                                   class="btn btn-outline-primary btn-sm" 
+                                   title="View full details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('toggle_resolved', issue_id=issue.id) }}" 
+                                      style="display: inline;" 
+                                      title="{% if issue.resolved %}Mark as open{% else %}Mark as resolved{% endif %}">
+                                    <button type="submit" class="btn btn-outline-{% if issue.resolved %}warning{% else %}success{% endif %} btn-sm">
+                                        {% if issue.resolved %}
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        {% else %}
+                                            <i class="bi bi-check"></i>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('delete_issue', issue_id=issue.id) }}" 
+                                      style="display: inline;" 
+                                      onsubmit="return confirmDelete({{ issue.id }}, '{{ issue.location }}', '{{ issue.issue_type }}')">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                            title="Delete this issue">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted"></i>
+            <h3 class="text-muted mt-3">No Issues Found</h3>
+            <p class="text-muted">
+                {% if search_location or search_type %}
+                    Try adjusting your search filters or <a href="{{ url_for('dashboard') }}">clear all filters</a>.
+                {% else %}
+                    Get started by <a href="{{ url_for('new_issue') }}">adding your first issue</a>.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

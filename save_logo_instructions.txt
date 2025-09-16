@@ -1,0 +1,10 @@
+INSTRUCTIONS TO SAVE THE EDG LOGO:
+
+1. Save the EDG logo image you uploaded as "logo.png" in this folder:
+   C:\Users\noah.edwards\field_issue_logger\static\img\logo.png
+
+2. The logo should be approximately 32px height for optimal display in the navigation bar.
+
+3. If you can't save the uploaded image, I've created a CSS-based EDG logo as a backup.
+
+The application is now configured to display your logo in the navigation bar once you save the file to the correct location.

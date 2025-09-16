@@ -1,0 +1,5 @@
+# Field Issue Logger - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+Flask==2.3.3
+Werkzeug==2.3.7

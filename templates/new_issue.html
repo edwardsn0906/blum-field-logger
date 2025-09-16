@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}New Issue - Field Issue Logger{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="card-title mb-0">
+                    <i class="bi bi-plus-circle"></i> Log New Issue
+                </h2>
+            </div>
+            <div class="card-body">
+                <!-- New Issue Form -->
+                <form method="POST" id="issueForm">
+                    <div class="row">
+                        <!-- Date Field -->
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">
+                                <i class="bi bi-calendar"></i> Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="date" name="date" 
+                                   value="{{ today }}" required>
+                            <div class="form-text">Date when the issue was identified</div>
+                        </div>
+
+                        <!-- Location Field -->
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Location <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   placeholder="e.g., Building A - Room 101, Site 3 - North Wing" required>
+                            <div class="form-text">Specific location where issue was found</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Issue Type Field -->
+                        <div class="col-md-6 mb-3">
+                            <label for="issue_type" class="form-label">
+                                <i class="bi bi-tags"></i> Issue Type <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="issue_type" name="issue_type" required>
+                                <option value="">Select issue type...</option>
+                                <option value="Safety">Safety</option>
+                                <option value="Quality">Quality</option>
+                                <option value="Access">Access</option>
+                                <option value="Coordination">Coordination</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="form-text">Category that best describes the issue</div>
+                        </div>
+
+                        <!-- Urgency Field -->
+                        <div class="col-md-6 mb-3">
+                            <label for="urgency" class="form-label">
+                                <i class="bi bi-speedometer2"></i> Urgency Level <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="urgency" name="urgency" required>
+                                <option value="">Select urgency level...</option>
+                                <option value="Low" class="text-success">
+                                    Low - Can be addressed in scheduled maintenance
+                                </option>
+                                <option value="Medium" class="text-warning">
+                                    Medium - Should be addressed within a few days
+                                </option>
+                                <option value="High" class="text-danger">
+                                    High - Requires immediate attention
+                                </option>
+                            </select>
+                            <div class="form-text">How quickly this issue needs to be resolved</div>
+                        </div>
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="mb-4">
+                        <label for="description" class="form-label">
+                            <i class="bi bi-card-text"></i> Description <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4" 
+                                  placeholder="Provide a detailed description of the issue, including what you observed, potential causes, and any immediate actions taken..." required></textarea>
+                        <div class="form-text">
+                            Be as specific as possible. Include details about what you saw, heard, or experienced.
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-muted">
+                                <span id="charCount">0</span> characters
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <div>
+                            <button type="reset" class="btn btn-outline-warning me-2">
+                                <i class="bi bi-arrow-clockwise"></i> Reset Form
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Log Issue
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-question-circle"></i> Logging Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Issue Types:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Safety:</strong> Hazards, unsafe conditions, accidents</li>
+                            <li><strong>Quality:</strong> Defects, standards not met, rework needed</li>
+                            <li><strong>Access:</strong> Blocked areas, missing keys, entry issues</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Urgency Levels:</h6>
+                        <ul class="list-unstyled">
+                            <li><span class="text-danger"><strong>High:</strong></span> Safety hazards, work stoppage</li>
+                            <li><span class="text-warning"><strong>Medium:</strong></span> Quality issues, delays possible</li>
+                            <li><span class="text-success"><strong>Low:</strong></span> Minor issues, can wait</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Character counter for description field
+document.getElementById('description').addEventListener('input', function() {
+    const charCount = this.value.length;
+    document.getElementById('charCount').textContent = charCount;
+    
+    // Change color based on length
+    const countElement = document.getElementById('charCount');
+    if (charCount < 50) {
+        countElement.className = 'text-warning';
+    } else if (charCount < 200) {
+        countElement.className = 'text-success';
+    } else {
+        countElement.className = 'text-primary';
+    }
+});
+
+// Form validation enhancement
+document.getElementById('issueForm').addEventListener('submit', function(e) {
+    const description = document.getElementById('description').value.trim();
+    
+    // Check if description is too short
+    if (description.length < 10) {
+        e.preventDefault();
+        alert('Please provide a more detailed description (at least 10 characters).');
+        document.getElementById('description').focus();
+        return false;
+    }
+    
+    // Confirm submission for high urgency issues
+    const urgency = document.getElementById('urgency').value;
+    if (urgency === 'High') {
+        if (!confirm('This is marked as HIGH urgency. Are you sure this issue requires immediate attention?')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+
+// Auto-focus on location field when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('location').focus();
+});
+</script>
+
+{% endblock %}

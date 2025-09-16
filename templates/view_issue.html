@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Issue #{{ issue.id }} - Field Issue Logger{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">
+                <i class="bi bi-file-text"></i> Issue #{{ issue.id }}
+            </h1>
+            <div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Issue Details Card -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="card-title mb-0">
+                            <i class="bi bi-clipboard-data"></i> Issue Details
+                        </h4>
+                    </div>
+                    <div class="col-auto">
+                        <!-- Status Badge -->
+                        {% if issue.resolved %}
+                            <span class="badge bg-success fs-6 me-2">
+                                <i class="bi bi-check-circle-fill"></i> Resolved
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark fs-6 me-2">
+                                <i class="bi bi-clock"></i> Open
+                            </span>
+                        {% endif %}
+                        
+                        <!-- Urgency Badge -->
+                        <span class="badge {% if issue.urgency == 'High' %}bg-danger{% elif issue.urgency == 'Medium' %}bg-warning text-dark{% else %}bg-secondary{% endif %} fs-6">
+                            {% if issue.urgency == 'High' %}
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            {% elif issue.urgency == 'Medium' %}
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill"></i>
+                            {% endif %}
+                            {{ issue.urgency }} Priority
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Basic Information Grid -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="info-item mb-3">
+                            <label class="info-label">
+                                <i class="bi bi-calendar3 text-primary"></i> <strong>Date Reported:</strong>
+                            </label>
+                            <p class="info-value">{{ issue.date }}</p>
+                        </div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="info-label">
+                                <i class="bi bi-geo-alt text-primary"></i> <strong>Location:</strong>
+                            </label>
+                            <p class="info-value">{{ issue.location }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item mb-3">
+                            <label class="info-label">
+                                <i class="bi bi-tags text-primary"></i> <strong>Issue Type:</strong>
+                            </label>
+                            <p class="info-value">
+                                <span class="badge bg-info">{{ issue.issue_type }}</span>
+                            </p>
+                        </div>
+                        
+                        <div class="info-item mb-3">
+                            <label class="info-label">
+                                <i class="bi bi-speedometer2 text-primary"></i> <strong>Urgency Level:</strong>
+                            </label>
+                            <p class="info-value">
+                                <span class="urgency-{{ issue.urgency.lower() }}">
+                                    {% if issue.urgency == 'High' %}
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {% elif issue.urgency == 'Medium' %}
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-info-circle-fill"></i>
+                                    {% endif %}
+                                    {{ issue.urgency }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Section -->
+                <div class="description-section">
+                    <label class="info-label mb-2">
+                        <i class="bi bi-card-text text-primary"></i> <strong>Full Description:</strong>
+                    </label>
+                    <div class="description-content p-3 bg-light rounded border">
+                        <p class="mb-0" style="white-space: pre-wrap; line-height: 1.6;">{{ issue.description }}</p>
+                    </div>
+                    <small class="text-muted mt-1 d-block">
+                        <i class="bi bi-info-circle"></i> {{ issue.description|length }} characters
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                    
+                    <div>
+                        <!-- Toggle Resolved Button -->
+                        <form method="POST" action="{{ url_for('toggle_resolved', issue_id=issue.id) }}" 
+                              style="display: inline;" 
+                              title="{% if issue.resolved %}Mark as open{% else %}Mark as resolved{% endif %}">
+                            {% if issue.resolved %}
+                                <button type="submit" class="btn btn-warning me-2">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reopen Issue
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-success me-2">
+                                    <i class="bi bi-check-circle"></i> Mark Resolved
+                                </button>
+                            {% endif %}
+                        </form>
+                        
+                        <!-- Delete Button with Confirmation -->
+                        <form method="POST" action="{{ url_for('delete_issue', issue_id=issue.id) }}" 
+                              style="display: inline;" 
+                              onsubmit="return confirmDeleteFromView({{ issue.id }}, '{{ issue.location }}', '{{ issue.issue_type }}')">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete Issue
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Information Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Additional Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Issue Type Guidelines:</h6>
+                        <ul class="list-unstyled small">
+                            {% if issue.issue_type == 'Safety' %}
+                                <li><strong>Safety Issues:</strong> Hazards, unsafe conditions, potential for accidents or injury</li>
+                            {% elif issue.issue_type == 'Quality' %}
+                                <li><strong>Quality Issues:</strong> Defects, standards not met, rework required, quality control failures</li>
+                            {% elif issue.issue_type == 'Access' %}
+                                <li><strong>Access Issues:</strong> Blocked areas, missing keys, entry problems, restricted access</li>
+                            {% elif issue.issue_type == 'Coordination' %}
+                                <li><strong>Coordination Issues:</strong> Communication problems, scheduling conflicts, team coordination</li>
+                            {% else %}
+                                <li><strong>Other Issues:</strong> Issues that don't fit into the standard categories</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Urgency Level:</h6>
+                        <ul class="list-unstyled small">
+                            {% if issue.urgency == 'High' %}
+                                <li><span class="text-danger"><strong>High Priority:</strong></span> Requires immediate attention, safety hazards, work stoppage</li>
+                            {% elif issue.urgency == 'Medium' %}
+                                <li><span class="text-warning"><strong>Medium Priority:</strong></span> Should be addressed within a few days, quality issues, potential delays</li>
+                            {% else %}
+                                <li><span class="text-success"><strong>Low Priority:</strong></span> Can be addressed in scheduled maintenance, minor issues</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom styles for the view page */
+.info-item {
+    margin-bottom: 1rem;
+}
+
+.info-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #495057;
+}
+
+.info-value {
+    margin-bottom: 0;
+    font-size: 1.1rem;
+}
+
+.description-content {
+    max-height: none;
+    overflow: visible;
+}
+
+.urgency-high { color: #dc3545; font-weight: bold; }
+.urgency-medium { color: #fd7e14; font-weight: bold; }
+.urgency-low { color: #198754; font-weight: bold; }
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+</style>
+
+<script>
+// Confirmation dialog for deleting from view page
+function confirmDeleteFromView(issueId, location, issueType) {
+    const message = `Are you sure you want to delete this issue?\n\n` +
+                  `Issue #${issueId}\n` +
+                  `Location: ${location}\n` +
+                  `Type: ${issueType}\n\n` +
+                  `This action cannot be undone.\n\n` +
+                  `You will be redirected to the dashboard after deletion.`;
+    
+    return confirm(message);
+}
+</script>
+
+{% endblock %}
